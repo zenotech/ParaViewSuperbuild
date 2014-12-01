@@ -1,0 +1,31 @@
+##------------------------------------------------------------------------------
+## Regular expression for warning exception during build process
+set (CTEST_CUSTOM_WARNING_EXCEPTION
+  ${CTEST_CUSTOM_WARNING_EXCEPTION}
+
+  # ignore all warnings when CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS doesnt'
+  # have any effect.
+  ".*"
+  ".ParaViewSuperbuild.*"
+  "[w|W]arning"
+  "WARNING"
+  "CMake Warning"
+)
+
+# Regular expression for warning exception during build process
+# Regular expression for error exceptions during build process
+set (CTEST_CUSTOM_ERROR_EXCEPTION
+  ${CTEST_CUSTOM_ERROR_EXCEPTION}
+
+  # skip numpy configure errors on Windows.
+  # these are warnings about Atlas/Blas not found.
+  "system_info.py.*UserWarning:"
+
+  # again from numpy, skip configtest errors.
+  "_configtest"
+)
+
+# We disable all compiler warnings on superbuild. They are too numerous and pretty much useless
+# when they show up on the dashboard. If you want to track them do, just run the build
+# manually.
+set (CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS 0)
