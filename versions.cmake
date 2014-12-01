@@ -140,7 +140,7 @@ option(ParaView_FROM_GIT "If enabled then the repository is fetched from git" ON
 if (ParaView_FROM_GIT)
   # Download PV from GIT
   add_revision(paraview
-    GIT_REPOSITORY git://paraview.org/ParaView.git
+    GIT_REPOSITORY https://github.com/zenotech/ParaView.git
     GIT_TAG "master")
 else()
   # Variables to hold the URL and MD5 (optional)
