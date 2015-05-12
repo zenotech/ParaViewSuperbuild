@@ -4,7 +4,9 @@ add_external_project_or_use_system(
   zlib
   # remove the zconf.h as a patch step.
   PATCH_COMMAND ${CMAKE_COMMAND} -E remove -f <SOURCE_DIR>/zconf.h
+  CMAKE_ARGS -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
   )
+
 #-------------------------------------------------------
 # zlib needs a fix for '--version-script' linker option. The option needs to be
 # removed on Macs. The fix to CMakeLists.txt works for all OSs.

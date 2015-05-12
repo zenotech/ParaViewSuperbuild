@@ -1,7 +1,7 @@
-set (extra_commands)
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  #set the platform to be clang if on apple and not gcc
-  set(extra_commands --cc=clang)
+if(BUILD_SHARED_LIBS)
+  set(shared_args --enable-shared --disable-static)
+else()
+  set(shared_args --disable-shared --enable-static)
 endif()
 
 add_external_project(
@@ -17,12 +17,11 @@ add_external_project(
                     --disable-ffprobe
                     --disable-ffserver
                     --disable-network
-                    --disable-static
-                    --enable-shared
                     --disable-yasm
+                    ${shared_args}
+                    --cc=${CMAKE_C_COMPILER}
                     \"--extra-cflags=${cppflags}\"
                     \"--extra-ldflags=${ldflags}\"
                     ${extra_commands}"
   BUILD_IN_SOURCE 1
 )
-unset(extra_commands)

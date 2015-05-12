@@ -1,10 +1,9 @@
-
-add_external_project(
+add_external_project_or_use_system(
   hdf5
   DEPENDS zlib szip
 
   CMAKE_ARGS
-    -DBUILD_SHARED_LIBS:BOOL=TRUE
+    -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
     -DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=TRUE
     -DHDF5_ENABLE_SZIP_SUPPORT:BOOL=TRUE
     -DHDF5_ENABLE_SZIP_ENCODING:BOOL=TRUE
@@ -51,3 +50,5 @@ if (WIN32)
     )
   endif()
 endif()
+
+add_extra_cmake_args(-DVTK_USE_SYSTEM_HDF5:BOOL=ON)

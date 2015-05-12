@@ -17,38 +17,48 @@ if (paraviewsdk_ENABLED)
   set (PARAVIEW_INSTALL_DEVELOPMENT_FILES TRUE)
 endif()
 
+set(osmesa_ARGS)
+if(osmesa_ENABLED)
+  set(osmesa_ARGS -DVTK_OPENGL_HAS_OSMESA:BOOL=ON -DVTK_USE_X:BOOL=OFF)
+endif()
+
+set(use_qt OFF)
+if (qt4_ENABLED OR qt_ENABLED)
+  set(use_qt ON)
+endif ()
+
 add_external_project(paraview
   DEPENDS_OPTIONAL
-    boost cosmotools ffmpeg hdf5 libxml3 manta matplotlib mpi numpy png python qt visitbridge zlib silo cgns
+    adios boost cosmotools ffmpeg hdf5 libxml3 manta matplotlib mpi numpy png python qt4 qt visitbridge zlib silo cgns
     mesa osmesa nektarreader netcdf
     ${PV_EXTERNAL_PROJECTS}
 
   CMAKE_ARGS
-    -DBUILD_SHARED_LIBS:BOOL=ON
+    -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
     -DBUILD_TESTING:BOOL=OFF
     -DPARAVIEW_BUILD_PLUGIN_CoProcessingScriptGenerator:BOOL=ON
     -DPARAVIEW_BUILD_PLUGIN_EyeDomeLighting:BOOL=ON
     -DPARAVIEW_BUILD_PLUGIN_MantaView:BOOL=${manta_ENABLED}
-    -DPARAVIEW_BUILD_QT_GUI:BOOL=${qt_ENABLED}
+    -DPARAVIEW_BUILD_QT_GUI:BOOL=${use_qt}
     -DPARAVIEW_ENABLE_FFMPEG:BOOL=${ffmpeg_ENABLED}
     -DPARAVIEW_ENABLE_PYTHON:BOOL=${python_ENABLED}
     -DPARAVIEW_ENABLE_COSMOTOOLS:BOOL=${cosmotools_ENABLED}
     -DPARAVIEW_USE_MPI:BOOL=${mpi_ENABLED}
     -DPARAVIEW_USE_VISITBRIDGE:BOOL=${visitbridge_ENABLED}
-    -DVISIT_BUILD_READER_CGNS:BOOL=${cgns_ENABLED}
+    -DVISIT_BUILD_READER_CGNS:BOOL=OFF # force to off
+    -DPARAVIEW_ENABLE_CGNS:BOOL=${cgns_ENABLED}
     -DVISIT_BUILD_READER_Silo:BOOL=${silo_ENABLED}
-    -DVTK_USE_SYSTEM_HDF5:BOOL=${hdf5_ENABLED}
     -DPARAVIEW_INSTALL_DEVELOPMENT_FILES:BOOL=${PARAVIEW_INSTALL_DEVELOPMENT_FILES}
     -DPARAVIEW_BUILD_PLUGIN_Nektar:BOOL=${nektarreader_ENABLED}
     -DPARAVIEW_ENABLE_MATPLOTLIB:BOOL=${matplotlib_ENABLED}
     -DVTK_USE_SYSTEM_NETCDF:BOOL=${netcdf_ENABLED}
-
-    # since VTK mangles all the following, I wonder if there's any point in
-    # making it use system versions.
-#    -DVTK_USE_SYSTEM_FREETYPE:BOOL=${ENABLE_FREETYPE}
-#    -DVTK_USE_SYSTEM_LIBXML2:BOOL=${ENABLE_LIBXML2}
-#    -DVTK_USE_SYSTEM_PNG:BOOL=${ENABLE_PNG}
-#    -DVTK_USE_SYSTEM_ZLIB:BOOL=${ENABLE_ZLIB}
+    -DVTK_USE_SYSTEM_FREETYPE:BOOL=${freetype_ENABLED}
+    -DVTK_USE_SYSTEM_HDF5:BOOL=${hdf5_ENABLED}
+    -DVTK_USE_SYSTEM_LIBXML2:BOOL=${libxml2_ENABLED}
+    -DVTK_USE_SYSTEM_PNG:BOOL=${png_ENABLED}
+    -DVTK_USE_SYSTEM_ZLIB:BOOL=${zlib_ENABLED}
+    -DModule_vtkIOADIOS:BOOL=${adios_ENABLED}
+    ${osmesa_ARGS}
 
     # Web documentation
     -DPARAVIEW_BUILD_WEB_DOCUMENTATION:BOOL=${PARAVIEW_BUILD_WEB_DOCUMENTATION}

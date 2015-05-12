@@ -4,7 +4,14 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   #set the platform to be clang if on apple and not gcc
   set(extra_commands --with-toolset=clang)
 endif()
-add_external_project(boost
+
+if(BUILD_SHARED_LIBS)
+  list(APPEND extra_commands link=shared)
+else()
+  list(APPEND extra_commands link=static)
+endif()
+
+add_external_project_or_use_system(boost
   DEPENDS zlib python
   BUILD_IN_SOURCE 1
   CONFIGURE_COMMAND
