@@ -1,6 +1,6 @@
 add_external_project(vistrails
   DEPENDS paraview
-  DEPENDS_OPTIONAL qt4 qt
+  DEPENDS_OPTIONAL qt4 qt5
 
   CMAKE_ARGS
     -DParaView_DIR:PATH=${SuperBuild_BINARY_DIR}/paraview/src/paraview-build
@@ -14,6 +14,6 @@ add_external_project(vistrails
                     "-DPLUGIN_SCRIPT:FILEPATH=${CMAKE_CURRENT_LIST_DIR}/plugin-macros.cmake"
                     "-D7Z_EXE:FILEPATH=${7Z_EXE}"
                      -Dbundle_name:STRING=${CMAKE_CURRENT_BINARY_DIR}/VisTrailsPlugin
-                     -Dbundle_suffix:STRING=${pv_version_long}-${PACKAGE_SUFFIX}
+                     -Dbundle_suffix_file:STRING=${CMAKE_BINARY_DIR}/paraview_version.cmake
                      -P ${CMAKE_CURRENT_LIST_DIR}/install_vistrails.cmake
 )

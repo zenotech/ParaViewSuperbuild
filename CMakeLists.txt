@@ -5,7 +5,22 @@ if (APPLE)
     set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE STRING "By default, build for 64-bit Leopard")
   endif()
 
-  if (CMAKE_OSX_SDK)
+  if (NOT CMAKE_OSX_SDK)
+    execute_process(
+      COMMAND xcrun
+              --show-sdk-version
+      OUTPUT_VARIABLE
+              SDK_VERSION
+      RESULT_VARIABLE
+              res
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if (res)
+      message(FATAL_ERROR "failed to detect CMAKE_OSX_SDK; please set manually (e.g. \"macosx10.10\")")
+    endif ()
+    SET(CMAKE_OSX_SDK macosx${SDK_VERSION})
+  endif()
+
+  if (NOT CMAKE_OSX_SYSROOT)
     execute_process(
       COMMAND xcodebuild
               -sdk ${CMAKE_OSX_SDK}
@@ -18,6 +33,8 @@ if (APPLE)
     if (res)
       message(FATAL_ERROR "Cannot determine SDK path for SDK: ${CMAKE_OSX_SDK}")
     endif ()
+  endif ()
+  if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
     execute_process(
       COMMAND xcodebuild
               -sdk ${CMAKE_OSX_SDK}
@@ -30,8 +47,6 @@ if (APPLE)
     if (res)
       message(FATAL_ERROR "Cannot determine SDK version for SDK: ${CMAKE_OSX_SDK}")
     endif ()
-  else ()
-    message(FATAL_ERROR "Ensure that CMAKE_OSX_SDK is set correctly")
   endif ()
 endif()
 
@@ -113,22 +128,6 @@ if (NOT CROSS_BUILD_STAGE STREQUAL "CROSS")
     set (64bit_build FALSE)
   endif()
 endif()
-
-# Set suffix to be used for generating archives. This ensures that the package
-# files have decent names that we can directly upload to the website.
-set (package_suffix_default "${CMAKE_SYSTEM_NAME}")
-if (64bit_build)
-  set (package_suffix_default "${package_suffix_default}-64bit")
-else ()
-  set (package_suffix_default "${package_suffix_default}-32bit")
-endif()
-
-# PACKAGE_SUFFIX: A string that can be set to the suffix you want to use for all
-# the generated packages. By default, its set to
-# ${CMAKE_SYSTEM_NAME}-{64|32}bit.
-set (PACKAGE_SUFFIX "${package_suffix_default}"
-  CACHE STRING "String to use as a suffix for generated packages")
-mark_as_advanced(PACKAGE_SUFFIX)
 
 option(TRUST_SVN_CERTIFICATES_AUTOMATICALLY
   "Trust SVN certificates automatically" ON)
@@ -242,6 +241,11 @@ endif()
 option(USE_NONFREE_COMPONENTS "Enable the non-free parts of the superbuild" OFF)
 mark_as_advanced(USE_NONFREE_COMPONENTS)
 
+if (ENABLE_qt AND NOT ENABLE_qt4 AND NOT ENABLE_qt5)
+  message(FATAL_ERROR "Qt is enabled, but no version is specified. "
+          "Please enable either Qt4 (recommended) or Qt5.")
+endif ()
+
 # Include all optional projects. These are the ones user can pick and choose.
 # Some of these allow using system libraries too.
 if (CROSS_BUILD_STAGE STREQUAL "CROSS")
@@ -272,10 +276,12 @@ else()
   include(png)
   include(python)
   include(qt4)
-  include(qt)
+  include(qt5)
   include(silo)
   include(szip)
   include(visitbridge)
+  include(vortexfinder2)
+  include(xdmf3)
   include(zlib)
   if(CMAKE_Fortran_COMPILER)
     # both of these packages require a Fortran compiler to build so we
@@ -340,14 +346,63 @@ process_dependencies()
 #-------------------------------------------------------------------------
 # Some sanity checks.
 # Sanity check: Cannot has osmesa and qt enabled at the same time.
-if (osmesa_ENABLED AND (qt4_ENABLED OR qt_ENABLED))
-  message(SEND_ERROR "Cannot enable OSMesa and QT at the same time.")
+if (osmesa_ENABLED AND (qt4_ENABLED OR qt5_ENABLED))
+  message(SEND_ERROR "Cannot enable OSMesa and Qt at the same time.")
 endif()
 # Sanity check: Cannot has osmesa and mesa at the same time.
 if (osmesa_ENABLED AND mesa_ENABLED)
   message(SEND_ERROR "Cannot enable OSMesa and Mesa at the same time.")
 endif()
 #-------------------------------------------------------------------------
+
+# Set suffix to be used for generating archives. This ensures that the package
+# files have decent names that we can directly upload to the website.
+set(package_suffix_items)
+if (qt4_ENABLED)
+  list(APPEND package_suffix_items
+    Qt4)
+endif ()
+if (paraview_ENABLED AND PARAVIEW_RENDERING_BACKEND STREQUAL "OpenGL2")
+  list(APPEND package_suffix_items
+    OpenGL2)
+endif ()
+if (APPLE)
+  list(APPEND package_suffix_items
+    "OSX${CMAKE_OSX_DEPLOYMENT_TARGET}")
+else ()
+  list(APPEND package_suffix_items
+    "${CMAKE_SYSTEM_NAME}")
+endif ()
+if (64bit_build)
+  list(APPEND package_suffix_items
+    "64bit")
+else ()
+  list(APPEND package_suffix_items
+    "32bit")
+endif()
+
+string(REPLACE ";" "-" package_suffix_default "${package_suffix_items}")
+
+# PACKAGE_SUFFIX: A string that can be set to the suffix you want to use for all
+# the generated packages. By default, its set to
+# ${CMAKE_SYSTEM_NAME}-{64|32}bit.
+set (PACKAGE_SUFFIX "<default>"
+  CACHE STRING "String to use as a suffix for generated packages")
+mark_as_advanced(PACKAGE_SUFFIX)
+
+if (NOT PACKAGE_SUFFIX OR PACKAGE_SUFFIX STREQUAL "<default>")
+  set(PACKAGE_SUFFIX "${package_suffix_default}")
+elseif (NOT PACKAGE_SUFFIX STREQUAL package_suffix_default)
+  message(WARNING "The suffix for the package (${PACKAGE_SUFFIX}) does not "
+                  "match the suggested suffix based on build options "
+                  "(${package_suffix_default}). Set it to '<default>' or "
+                  "an empty string to use the default suffix. Using the "
+                  "provided suffix.")
+endif ()
+
+file(WRITE "${CMAKE_BINARY_DIR}/paraview_version.cmake"
+"set(bundle_suffix \"${pv_version_long}-${PACKAGE_SUFFIX}\")
+")
 
 if (paraview_ENABLED)
   include(paraview.bundle OPTIONAL)

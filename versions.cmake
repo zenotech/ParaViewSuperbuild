@@ -63,11 +63,11 @@ add_revision(qt4
   URL_MD5 2edbe4d6c2eff33ef91732602f3518eb)
 
 if (WIN32)
-  add_revision(qt
+  add_revision(qt5
     URL "http://download.qt.io/official_releases/qt/5.4/5.4.1/single/qt-everywhere-opensource-src-5.4.1.zip"
     URL_MD5 57b25c68982237abb9e18b347034e005)
 else ()
-  add_revision(qt
+  add_revision(qt5
     URL "http://download.qt.io/official_releases/qt/5.4/5.4.1/single/qt-everywhere-opensource-src-5.4.1.tar.gz"
     URL_MD5 90f3fbce38ed16e5dc2cd0909ae86ca4)
 endif ()
@@ -104,6 +104,7 @@ add_revision(boost
   URL "http://packages.zenotech.com/boost_1_57_0.tar.bz2"
   URL_MD5 1be49befbdd9a5ce9def2983ba3e7b76)
 
+
 add_revision(manta
   URL "http://paraview.org/files/dependencies/manta-r2439.tar.gz"
   URL_MD5 fbf4107fe2f6d7e8a5ae3dda71805bdc)
@@ -138,8 +139,7 @@ add_revision(osmesa
 # ----------------------------------------------------------------------------
 # You choose to download ParaView source form GIT or other URL/FILE tarball
 option(ParaView_FROM_GIT "If enabled then the repository is fetched from git" ON)
-cmake_dependent_option(ParaView_FROM_SOURCE_DIR OFF
-  "Enable to use existing ParaView source."
+cmake_dependent_option(ParaView_FROM_SOURCE_DIR "Enable to use existing ParaView source." OFF
   "NOT ParaView_FROM_GIT" OFF)
 
 if (ParaView_FROM_GIT)
@@ -154,8 +154,8 @@ else()
   else()
     # Variables to hold the URL and MD5 (optional)
     add_customizable_revision(paraview
-      URL "http://www.paraview.org/files/v4.3/ParaView-v4.3.1-source.tar.gz"
-      URL_MD5 "d03d3ab504037edd21306413dff64293")
+      URL "http://www.paraview.org/files/v4.4/ParaView-v4.4.0-source.tar.gz"
+      URL_MD5 "fa1569857dd680ebb4d7ff89c2227378")
   endif()
 endif()
 
@@ -166,8 +166,8 @@ endif()
 
 if (USE_NONFREE_COMPONENTS)
   add_revision(qhull
-    GIT_REPOSITORY git://github.com/gzagaris/gxzagas-qhull.git
-    GIT_TAG master)
+    GIT_REPOSITORY https://github.com/mathstuf/qhull.git
+    GIT_TAG next)
 
   add_revision(genericio
     GIT_REPOSITORY https://kwgitlab.kitware.com/paraview/genericio.git
@@ -181,16 +181,9 @@ if (USE_NONFREE_COMPONENTS)
       URL "http://paraview.org/files/dependencies/diy-src.r178.tar.gz"
       URL_MD5 4fba13aae93927d0f32dd6db0599ffcd)
   else()
-    if (TRUST_SVN_CERTIFICATES_AUTOMATICALLY)
-      add_revision(diy
-         SVN_REPOSITORY https://svn.mcs.anl.gov/repos/diy/trunk
-         SVN_REVISION -r178
-         SVN_TRUST_CERT 1)
-    else()
-      add_revision(diy
-         SVN_REPOSITORY https://svn.mcs.anl.gov/repos/diy/trunk
-         SVN_REVISION -r178)
-    endif()
+    add_revision(diy
+      GIT_REPOSITORY https://gitlab.kitware.com/paraview/diy.git
+      GIT_TAG f5c00a034279d20cf040705d78a6b7bdb4beae43) # r178
   endif()
 
   add_revision(cosmotools
@@ -205,6 +198,13 @@ if (USE_NONFREE_COMPONENTS)
     GIT_REPOSITORY https://kwgitlab.kitware.com/paraview/vistrails.git
     GIT_TAG master)
 endif ()
+
+#add_customizable_revision(vortexfinder2
+#  GIT_REPOSITORY https://github.com/hguo/vortexfinder2.git
+#  GIT_TAG 2bdae9bfc0f36e1013a4b41c5d25c9e6ebbf1701)
+add_customizable_revision(vortexfinder2
+  GIT_REPOSITORY https://github.com/tj-corona/vortexfinder2.git
+  GIT_TAG paraview-superbuild)
 
 #add_revision(mili_plugin
 # URL ${CMAKE_CURRENT_SOURCE_DIR}/Externals/mili)

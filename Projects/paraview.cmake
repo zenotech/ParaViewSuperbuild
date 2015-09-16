@@ -23,15 +23,31 @@ if(osmesa_ENABLED)
 endif()
 
 set(use_qt OFF)
-if (qt4_ENABLED OR qt_ENABLED)
+if (qt4_ENABLED OR qt5_ENABLED)
   set(use_qt ON)
 endif ()
 
+set(PARAVIEW_RENDERING_BACKEND "OpenGL" CACHE STRING "Rendering backend to use for ParaView")
+set_property(CACHE PARAVIEW_RENDERING_BACKEND
+  PROPERTY
+    STRINGS "OpenGL;OpenGL2")
+
+get_property(plugins GLOBAL PROPERTY pv_plugins)
+list (REMOVE_DUPLICATES plugins)
+
+set(plugin_dirs)
+foreach (plugin IN LISTS plugins)
+  if (${plugin}_ENABLED AND TARGET ${plugin})
+      get_property(plugin_dir TARGET "${plugin}" PROPERTY _EP_SOURCE_DIR)
+      set(plugin_dirs "${plugin_dir}$<SEMICOLON>${plugin_dirs}")
+  endif ()
+endforeach ()
+
 add_external_project(paraview
   DEPENDS_OPTIONAL
-    adios boost cosmotools ffmpeg hdf5 libxml3 manta matplotlib mpi numpy png python qt4 qt visitbridge zlib silo cgns
+    adios boost cosmotools ffmpeg hdf5 libxml3 manta matplotlib mpi numpy png python qt4 qt5 visitbridge zlib silo cgns xdmf3
     mesa osmesa nektarreader netcdf
-    ${PV_EXTERNAL_PROJECTS}
+    ${PV_EXTERNAL_PROJECTS} ${plugins}
 
   CMAKE_ARGS
     -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
@@ -45,6 +61,7 @@ add_external_project(paraview
     -DPARAVIEW_ENABLE_COSMOTOOLS:BOOL=${cosmotools_ENABLED}
     -DPARAVIEW_USE_MPI:BOOL=${mpi_ENABLED}
     -DPARAVIEW_USE_VISITBRIDGE:BOOL=${visitbridge_ENABLED}
+    -DPARAVIEW_ENABLE_XDMF3:BOOL=${xdmf3_ENABLED}
     -DVISIT_BUILD_READER_CGNS:BOOL=OFF # force to off
     -DPARAVIEW_ENABLE_CGNS:BOOL=${cgns_ENABLED}
     -DVISIT_BUILD_READER_Silo:BOOL=${silo_ENABLED}
@@ -58,6 +75,7 @@ add_external_project(paraview
     -DVTK_USE_SYSTEM_PNG:BOOL=${png_ENABLED}
     -DVTK_USE_SYSTEM_ZLIB:BOOL=${zlib_ENABLED}
     -DModule_vtkIOADIOS:BOOL=${adios_ENABLED}
+    -DVTK_RENDERING_BACKEND:STRING=${PARAVIEW_RENDERING_BACKEND}
     ${osmesa_ARGS}
 
     # Web documentation
@@ -67,7 +85,10 @@ add_external_project(paraview
     # platforms.
     -DMACOSX_APP_INSTALL_PREFIX:PATH=<INSTALL_DIR>/Applications
 
-  ${extra_cmake_args}
+    # add additional plugin directories
+    -DPARAVIEW_EXTERNAL_PLUGIN_DIRS:STRING=${plugin_dirs}
+
+    ${extra_cmake_args}
 
   ${PV_EXTRA_CMAKE_ARGS}
 )
