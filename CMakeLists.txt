@@ -251,7 +251,8 @@ endfunction ()
 set(boost_libraries
   date_time
   system
-  thread)
+  thread 
+  python)
 
 list(APPEND superbuild_version_files
   "${CMAKE_CURRENT_LIST_DIR}/versions.cmake")
