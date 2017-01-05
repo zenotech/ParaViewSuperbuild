@@ -66,8 +66,8 @@ superbuild_set_selectable_source(paraview
     URL     "http://www.paraview.org/files/v5.2/ParaView-v5.2.0.tar.gz"
     URL_MD5 4570d1a2a183026adb65b73c7125b8b0
   SELECT git CUSTOMIZABLE
-    GIT_REPOSITORY "https://gitlab.kitware.com/paraview/paraview.git"
-    GIT_TAG        "origin/master"
+    GIT_REPOSITORY "https://github.com/zenotech/ParaView.git"
+    GIT_TAG        "master"
   SELECT source CUSTOMIZABLE
     SOURCE_DIR "source-paraview")
 get_property(paraview_revision GLOBAL
