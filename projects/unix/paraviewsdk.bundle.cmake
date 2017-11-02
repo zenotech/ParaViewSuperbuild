@@ -1,9 +1,27 @@
+include(paraview-version)
 set(CPACK_PACKAGE_NAME "ParaViewSDK")
 set(package_filename "${PARAVIEWSDK_PACKAGE_FILE_NAME}")
+set(paraview_plugin_path "lib/paraview-${paraview_version}")
 include(paraview.bundle.common)
 
 set(plugins_file "${CMAKE_CURRENT_BINARY_DIR}/paraview.plugins")
 paraview_add_plugin("${plugins_file}" ${paraview_plugins})
+
+foreach (paraview_plugin IN LISTS paraview_plugins)
+  superbuild_unix_install_plugin("lib${paraview_plugin}.so"
+    "lib/paraview-${paraview_version}"
+    "lib/paraview-${paraview_version}"
+    LOADER_PATHS    "${library_paths}"
+    INCLUDE_REGEXES "${superbuild_install_location}"
+    EXCLUDE_REGEXES ".*"
+    LOCATION        "lib/paraview-${paraview_version}/plugins/${paraview_plugin}/")
+endforeach ()
+
+install(
+  FILES       "${plugins_file}"
+  DESTINATION "lib/paraview-${paraview_version}"
+  COMPONENT   superbuild
+  RENAME      ".plugins")
 
 get_filename_component(real_superbuild_install_location "${superbuild_install_location}" REALPATH)
 

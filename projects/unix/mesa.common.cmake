@@ -44,10 +44,10 @@ set(mesa_common_config_args
   --enable-shared-glapi
   ${mesa_texture_float_args}
   --disable-dri --with-dri-drivers=
-  --enable-gallium-llvm --enable-llvm-shared-libs
+  --enable-llvm --enable-llvm-shared-libs
   --with-llvm-prefix=${llvm_dir}
   --with-gallium-drivers=${mesa_drivers}
-  --disable-egl --disable-gbm --with-egl-platforms=)
+  --disable-egl --disable-gbm)
 
 if (BUILD_SHARED_LIBS)
   set(mesa_shared_lib_args --enable-shared --disable-static)
@@ -61,23 +61,14 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     PROJECT_ONLY)
 endif ()
 
-if (mesa_SOURCE_SELECTION STREQUAL "git" OR
-    (current_project       STREQUAL "osmesa" AND
-     mesa_SOURCE_SELECTION STREQUAL "v12.0.3"))
-  set(mesa_use_autogen ON)
-endif ()
-
-if (mesa_use_autogen)
-  set(mesa_configure_cmd ./autogen.sh)
-else ()
-  set(mesa_configure_cmd ./configure)
-endif ()
+# We frequently need to patch the autoconf files so instead of making it patch
+# dependent we just always use autogen instead of configure
 
 superbuild_add_project(${project}
   CAN_USE_SYSTEM
-  DEPENDS llvm
+  DEPENDS llvm zlib ${mesa_type_deps}
   CONFIGURE_COMMAND
-    ${mesa_configure_cmd}
+    ./autogen.sh
       ${mesa_common_config_args}
       ${mesa_shared_lib_args}
       ${mesa_type_args}
@@ -87,8 +78,10 @@ superbuild_add_project(${project}
     make install
   BUILD_IN_SOURCE 1)
 
-if (mesa_use_autogen)
-  # For compatibility on machines with a crufty autotools
-  superbuild_apply_patch(${project} revert-xz
-    "Revert autoconf dist-xz to dist-bzip2")
-endif ()
+# For compatibility on machines with a crufty autotools
+superbuild_apply_patch(${project} revert-xz
+  "Revert autoconf dist-xz to dist-bzip2")
+
+# Fix some borked sed flags
+superbuild_apply_patch(${project} sed-flags
+  "Fix incompatible sed flags in configure")

@@ -1,7 +1,10 @@
 paraview_add_plugin(vortexfinder2
   PLUGIN_NAME VortexFinder2
-  DEPENDS boost qt4)
+  DEPENDS boost qt5 cxx11)
 
-# XXX: Remove when https://github.com/tjcorona/vortexfinder2/pull/2 is merged.
 superbuild_add_extra_cmake_args(
-  -DWITH_CXX11:BOOL=${cxx11_enabled})
+  -DWITH_MACOS_RPATH:BOOL=FALSE)
+
+# https://github.com/hguo/vortexfinder2/pull/9
+superbuild_apply_patch(vortexfinder2 loader-path
+  "Use @loader_path on macOS")

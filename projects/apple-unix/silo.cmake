@@ -11,9 +11,12 @@ if (zlib_enabled)
       list(GET ZLIB_LIBRARIES 0 silo_zlib_lib)
       get_filename_component(silo_zlib_lib_dir "${silo_zlib_lib}" DIRECTORY)
       set(silo_zlib_args "--with-zlib=${silo_zlib_inc_dir},${silo_zlib_lib_dir}")
+    else ()
+      message(FATAL_ERROR
+        "Required zlib variables were not found for silo.")
     endif ()
   else ()
-    set(silo_zlib_args "--with-hdf5=<INSTALL_DIR>/include,<INSTALL_DIR>/lib")
+    set(silo_zlib_args "--with-zlib=<INSTALL_DIR>/include,<INSTALL_DIR>/lib")
   endif ()
 endif ()
 
@@ -23,7 +26,6 @@ endif ()
 
 if (hdf5_enabled)
   if (USE_SYSTEM_hdf5)
-    find_package(HDF5)
     if (HDF5_INCLUDE_DIRS AND HDF5_LIBRARIES)
       list(GET HDF5_INCLUDE_DIRS 0 silo_hdf5_inc_dir)
       list(GET HDF5_C_LIBRARIES 0 silo_hdf5_lib)
@@ -33,6 +35,8 @@ if (hdf5_enabled)
   else ()
     set(silo_hdf5_args "--with-hdf5=<INSTALL_DIR>/include,<INSTALL_DIR>/lib")
   endif ()
+else ()
+  set(silo_hdf5_args "--without-hdf5")
 endif ()
 
 superbuild_add_project(silo
@@ -48,3 +52,8 @@ superbuild_add_project(silo
       ${silo_zlib_args}
       ${silo_szip_args}
       ${silo_hdf5_args})
+
+if (APPLE)
+  superbuild_apply_patch(silo zlib-apple
+    "Detect libz.dylib")
+endif ()

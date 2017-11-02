@@ -43,19 +43,25 @@ if (python_enabled)
 endif ()
 
 set(paraview_has_gui FALSE)
-if (qt4_enabled OR qt5_enabled)
+if (qt5_enabled)
   list(APPEND paraview_executables
     paraview)
   set(paraview_has_gui TRUE)
 endif ()
 
 set(python_modules
+  cinema_python
   pygments
   six)
 
 if (numpy_built_by_superbuild)
   list(APPEND python_modules
     numpy)
+endif ()
+
+if (scipy_built_by_superbuild)
+  list(APPEND python_modules
+    scipy)
 endif ()
 
 if (matplotlib_built_by_superbuild)
@@ -66,7 +72,12 @@ endif ()
 if (paraviewweb_enabled)
   list(APPEND python_modules
     autobahn
+    constantly
+    hyperlink
+    incremental
     twisted
+    txaio
+    wslink
     zope)
 
   if (WIN32)
@@ -149,25 +160,34 @@ function (paraview_install_extra_data)
   endif ()
 endfunction ()
 
-if (qt4_enabled)
-  include(qt4.functions)
+if (qt5_enabled)
+  include(qt5.functions)
 
-  set(qt4_plugin_prefix)
+  set(qt5_plugin_prefix)
   if (NOT WIN32)
-    set(qt4_plugin_prefix "lib")
+    set(qt5_plugin_prefix "lib")
   endif ()
 
-  set(qt4_plugin_suffix)
+  set(qt5_plugins
+    sqldrivers/${qt5_plugin_prefix}qsqlite)
+
   if (WIN32)
-    set(qt4_plugin_suffix "4")
+    list(APPEND qt5_plugins
+      platforms/qwindows)
+  elseif (APPLE)
+    list(APPEND qt5_plugins
+      platforms/libqcocoa
+      printsupport/libcocoaprintersupport)
+  elseif (UNIX)
+    list(APPEND qt5_plugins
+      platforms/libqxcb
+      platforminputcontexts/libcomposeplatforminputcontextplugin
+      xcbglintegrations/libqxcb-glx-integration)
   endif ()
 
-  set(qt4_plugins
-    sqldrivers/${qt4_plugin_prefix}qsqlite${qt4_plugin_suffix})
-
-  superbuild_install_qt4_plugin_paths(qt4_plugin_paths ${qt4_plugins})
+  superbuild_install_qt5_plugin_paths(qt5_plugin_paths ${qt5_plugins})
 else ()
-  set(qt4_plugin_paths)
+  set(qt5_plugin_paths)
 endif ()
 
 if (socat_built_by_superbuild)
